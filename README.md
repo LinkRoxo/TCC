@@ -47,7 +47,7 @@ Baixar os binarios do tesseract-ocr [nesse repositorio](https://github.com/UB-Ma
 Para usar <main.py>, siga estas etapas:
 
 ```
-1 - Criei uma pasta e insira todos os documentos previamente convertidos para **".png"**
+1 - Criei uma pasta e insira todos os documentos previamente convertidos para ".png"
 2 - Copiar o endereço da pasta que contem as imagens
 3 - Executar o "main.py"
 4 - Quando o programa pedir, insira o endereço da pasta
