@@ -6,6 +6,7 @@ import regex as re
 import cv2
 import os
 import pandas as pd
+from pandas import json_normalize
 
 #init
 path = ''
@@ -237,25 +238,11 @@ def main(arg):
     info = extrair_info(documento, prestadora)
     infos.append(info)
 
-  print(infos)
+# Salvar o DataFrame em um arquivo Excel
+  df = json_normalize(infos)
+  df.to_excel('dados_excel.xlsx', index=False)
   
   input("Digite qualquer coisa para continuar.............")
-  
-  all_data.append(infos)
-  df = pd.DataFrame(columns=["prestadora", "tipo_conta", "n_conta", "mes_referencia", "vencimento", "emisao", "cpf", "periodo", "valor_vencimento"])
-  for i in range(0, len(all_data)):
-    dado = all_data[i]
-    df.loc[i] = [all_data[i]["prestadora"],all_data[i]["tipo_conta"],all_data[i]["n_conta"],all_data[i]["mes_referencia"],all_data[i]["vencimento"],all_data[i]["emisao"],all_data[i]["cpf"],[all_data[i]["periodo"],[all_data[i]["valor_vencimento"]]]]
-
-  excel_file = "dados_contas.xlsx"
-
-
-  df.to_excel(excel_file, index=False, engine='openpyxl')
-
-  print(f'Dados foram salvos em {excel_file}')
-
-  all_data
-
 
 
 required = {'pytesseract', 'regex', 'opencv-python', 'pandas'}
