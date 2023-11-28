@@ -235,9 +235,10 @@ def main(arg):
     info = extrair_info(documento, prestadora)
     infos.append(info)
 
+  nome_excel = input("Digite o nome do excel:")
 # Salvar o DataFrame em um arquivo Excel
   df = json_normalize(infos)
-  df.to_excel('dados_excel.xlsx', index=False)
+  df.to_excel(nome_excel+'.xlsx', index=False)
   
   input("Digite qualquer coisa para continuar.............")
 
