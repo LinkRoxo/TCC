@@ -7,6 +7,7 @@ import cv2
 import os
 import pandas as pd
 from pandas import json_normalize
+from alive_progress import alive_it
 
 #init
 path = ''
@@ -99,7 +100,6 @@ def extrair_info(documento, prestadora):
 
   elif prestadora == 'Claro':
 
-
     regex_n_conta = r'(\b\d{9}\b)'
 
     # Regex para encontrar a data de vencimento
@@ -125,6 +125,7 @@ def extrair_info(documento, prestadora):
 
     vencimento =  re.findall(r'[Vv][Ee][Nn][Cc][Ii][Mm][Ee][Nn][Tt][Oo]\s(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0,1,2])/(19|20)\d{2}', documento, re.MULTILINE)
 
+
     emisao = re.findall(regex_data_inicio, documento, re.MULTILINE)
 
     cpf =  re.findall(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', documento, re.MULTILINE)
@@ -138,8 +139,6 @@ def extrair_info(documento, prestadora):
     # Mes Referencia
     mes_referencia1 = re.findall(r'[Mm][EeÊê][Ss]/[Aa][Nn][Oo]\n\d*? ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0,1,2])/(19|20)\d{2}) ((0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
     mes_referencia2 = re.findall(r'[Mm][EeÊê][Ss] [Rr][Ee][Ff][Ee][Rr][EeÊê][Nn][Cc][Ii][Aa]\n\n(\w+/\d{4})', documento, re.MULTILINE)
-    print(mes_referencia1)
-    print(mes_referencia2)
 
     if mes_referencia2:
        mes_referencia = mes_referencia2
@@ -162,6 +161,15 @@ def extrair_info(documento, prestadora):
     vencimento_numerico3 = [float(elemento.replace(',', '.')) for elemento in valor_vencimento3]
     if vencimento_numerico3:
       valor_vencimento3 = max(vencimento_numerico3)
+
+
+    if not valor_vencimento2:    
+      if not valor_vencimento1:
+        valor_vencimento = valor_vencimento3
+      else:
+        valor_vencimento = valor_vencimento1
+    else:
+       valor_vencimento = valor_vencimento2 
     
 
   elif prestadora == 'Tim':
@@ -179,17 +187,6 @@ def extrair_info(documento, prestadora):
 
 
   nome_conta = re.findall(r'\w+-\d{2}-\d{4}-\w+\.pdf', documento, re.MULTILINE)
-  print(str(nome_conta[0]))
-  print(prestadora)
-  print(tipo_conta)
-  print(n_conta)
-  print(mes_referencia)
-  print(vencimento)
-  print(emisao)
-
-  print(periodo)
-  print(valor_vencimento)
-
 
   retorno = {
     "nome_conta": nome_conta[0],
@@ -220,7 +217,7 @@ def main(arg):
   all_data = []
   infos = []
 
-  for x in paths:
+  for x in alive_it(paths, refresh_secs=0.1):
     teste = x[0].split('-')
     nome_arquivo = teste[0] + '-' + teste[1] + '-' + teste[2] + '-' + teste[3] + '.pdf' + ' '
     documento = str(nome_arquivo)
@@ -228,13 +225,13 @@ def main(arg):
       img = cv2.imread(x[i])
       convertido = pytesseract.image_to_string(img, lang = 'por', config='--psm 3')
       documento += convertido
-      print(documento)
+      #print(documento)
     array_documento.append(documento)
 
   for documento in array_documento:
     prestadora = descobre_prestadora(documento)
-    print('+++++++++++++++++++++++++++++++++++++++')
-    print('+++++++++++++++++++++++++++++++++++++++')
+    #print('+++++++++++++++++++++++++++++++++++++++')
+    #print('+++++++++++++++++++++++++++++++++++++++')
     info = extrair_info(documento, prestadora)
     infos.append(info)
 
