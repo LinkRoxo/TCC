@@ -12,6 +12,31 @@ from alive_progress import alive_it
 #init
 path = ''
 
+#VIVO REGEX
+vivo_n_conta1 = re.compile(r'Conta: (\d{14})', re.MULTILINE)
+vivo_n_conta2 = re.compile(r'Número da fatura: (\d{10}-\d)', re.MULTILINE)
+vivo_n_conta3 = re.compile(r'Conta: (\d{10})', re.MULTILINE)
+vivo_mes_referencia = re.compile(r'[Rr][Ee][Ff][Ee][Rr][Êê|Ee][Nn][Cc][Ii][Aa][\:\s|\s].*?(0[1-9]|1[0-2])\/(19|20)\d{2}', re.MULTILINE)
+vivo_vencimento = re.compile(r'Vencimento.*\n.*[\:\s|\s].*?((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+vivo_emisao = re.compile(r'[Dd][Aa][Tt][Aa] [Dd][Ee] [Ee][Mm][Ii][Ss][Ss][Ãã][oO]: ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2})', re.MULTILINE)
+vivo_periodo1 = re.compile(r'Período:((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2}) a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+vivo_periodo2 =  re.compile(r'Data \/ Período .*\n.*[\:\s|\s].*?((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2}) a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+vivo_valor_vencimento = re.compile(r'VALOR A PAGAR \(R\$\)\n*.*(\d{2,5}\,\d{2})', re.MULTILINE)
+
+#CLARO REGEX
+claro_n_conta = re.compile(r'(\b\d{9}\b)', re.MULTILINE)
+claro_mes_referencia1 = re.compile(r'[Mm][EeÊê][Ss]/[Aa][Nn][Oo]\n\d*? ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0,1,2])/(19|20)\d{2}) ((0[1-9]|1[0-2])/(19|20)\d{2})', re.MULTILINE)
+claro_mes_referencia2 = re.compile(r'[Mm][EeÊê][Ss] [Rr][Ee][Ff][Ee][Rr][EeÊê][Nn][Cc][Ii][Aa]\n\n(\w+/\d{4})', re.MULTILINE)
+claro_vencimento = re.compile(r'Vencimento\n.*((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+claro_emisao = re.compile(r'Data de emissão: ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+claro_periodo1 = re.compile(r'Período.*\n.*((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2}) a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+claro_periodo2 = re.compile(r'Período.*\nde.*((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+claro_periodo3 = re.compile(r'Período.*\n.*((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', re.MULTILINE)
+claro_valor_vencimento1 = re.compile(r'\b(\d+,\d{2})\b', re.MULTILINE)
+claro_valor_vencimento2 = re.compile(r'TOTAL A PAGAR R\$ (\d{1,3}(?:,\d{3})*(?:\,\d{2})?)', re.MULTILINE)
+claro_valor_vencimento3 = re.compile(r'Plano Contratado R\$ (\d{1,3}(?:,\d{3})*(?:\,\d{2})?)')
+
+
 def list_files_in_directory(folder_path):
   old_parts = ["primeiroValor","primeiroValor","primeiroValor","primeiroValor"]
   files_array = []
@@ -21,8 +46,8 @@ def list_files_in_directory(folder_path):
         
       file_path = os.path.join(root, file)
       
+      print(file)
       parts = file.split('-')
-      print(parts)
     
       if parts[0] == old_parts[0] and parts[1] == old_parts[1] and parts[2] == old_parts[2] and parts[3] == old_parts[3]:
         document_array.append(file_path)
@@ -34,7 +59,6 @@ def list_files_in_directory(folder_path):
 
       old_parts = parts
 
-  # print(files_array)
   return files_array
 
 def descobre_prestadora(documento):
@@ -68,87 +92,77 @@ def extrair_info(documento, prestadora):
     #PIPELINE VIVO
     tipo_conta = 'Telefonia'
 
-    n_conta = re.findall(r'Conta: (\d{14})', documento, re.MULTILINE)
+    n_conta = re.findall(vivo_n_conta1, documento)
     if len(n_conta) == 0:
-      n_conta = re.findall(r'Número da fatura: (\d{10}-\d)', documento, re.MULTILINE)
+      n_conta = re.findall(vivo_n_conta2, documento)
       if len(n_conta) == 0:
-        n_conta = re.findall(r'Conta: (\d{10})', documento, re.MULTILINE)
+        n_conta = re.findall(vivo_n_conta3, documento)
     if len(n_conta) > 0:
       n_conta = n_conta[0]
     
-    mes_referencia = re.findall(r'[Rr][Ee][Ff][Ee][Rr][Êê|Ee][Nn][Cc][Ii][Aa][\:\s|\s].*?(0[1-9]|1[0-2])\/(19|20)\d{2}', documento, re.MULTILINE)
+    mes_referencia = re.findall(vivo_mes_referencia, documento)
     if len(mes_referencia) > 0:
       mes_referencia = mes_referencia[0][0]
 
-    vencimento = re.findall(r'Vencimento.*\n.*[\:\s|\s].*?((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', documento, re.MULTILINE)
+    vencimento = re.findall(vivo_vencimento, documento)
     if len(vencimento) > 0:
       vencimento = str(vencimento[0][1] + "/" + vencimento[0][2] + "/" + vencimento[0][3])
 
-    emisao = re.findall(r'[Dd][Aa][Tt][Aa] [Dd][Ee] [Ee][Mm][Ii][Ss][Ss][Ãã][oO]: ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
+    emisao = re.findall(vivo_emisao, documento)
     if len(emisao) > 0:
       emisao = emisao[0][0]
 
     cpf = encontra_cpf_cnpj(documento)
 
-    periodo = re.findall(r'Período:((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2}) a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', documento, re.MULTILINE)
+    periodo = re.findall(vivo_periodo1, documento)
     if len(periodo) == 0:
-      periodo = re.findall(r'Data \/ Período .*\n.*[\:\s|\s].*?((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2}) a ((0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0,1,2])\/(19|20)\d{2})', documento, re.MULTILINE)
+      periodo = re.findall(vivo_periodo2, documento)
     if len(periodo) > 0: 
       periodo = str("de " + periodo[0][0] + " a " + periodo[0][4])
 
-    valor_vencimento = re.findall(r'VALOR A PAGAR \(R\$\)\n*.*(\d{2,5}\,\d{2})', documento, re.MULTILINE)
-
+    valor_vencimento = re.findall(vivo_valor_vencimento, documento)
+    if len(valor_vencimento) > 0:
+      valor_vencimento = valor_vencimento[0]
+  
   elif prestadora == 'Claro':
+    pre_n_conta = re.findall(claro_n_conta, documento)
+    
+    vencimento =  re.findall(claro_vencimento, documento)
+    if len(vencimento) != 0:
+      vencimento = vencimento[0][0]
 
-    regex_n_conta = r'(\b\d{9}\b)'
+    emisao = re.findall(claro_emisao, documento)
+    if len(emisao) != 0:
+      emisao = emisao[0][0]
 
-    # Regex para encontrar a data de vencimento
-    regex_data_vencimento = r'\b(\d{2}/\d{2}/\d{4})\b'
+    cpf =  re.findall(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', documento)
 
-    # Regex para encontrar a data de início
-    regex_data_inicio = r'\b(\d{2}/\d{2}/\d{4})\b'
-
-    # Regex para encontrar o valor total
-    regex_valor_total1 = r'\b(\d+,\d{2})\b'
-    regex_valor_total2 = r'TOTAL A PAGAR R\$ (\d{1,3}(?:,\d{3})*(?:\,\d{2})?)'
-    regex_valor_total3 = r'Plano Contratado R\$ (\d{1,3}(?:,\d{3})*(?:\,\d{2})?)'
-
-    #PIPELINE CLARO
-
-    tipo_conta = 'Telefonia'
-
-
-
-    pre_n_conta = re.findall(regex_n_conta, documento, re.MULTILINE)
-
-    pre_mes_referencia = re.findall(regex_data_vencimento, documento, re.MULTILINE)
-
-    vencimento =  re.findall(r'[Vv][Ee][Nn][Cc][Ii][Mm][Ee][Nn][Tt][Oo]\s(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0,1,2])/(19|20)\d{2}', documento, re.MULTILINE)
-
-
-    emisao = re.findall(regex_data_inicio, documento, re.MULTILINE)
-
-    cpf =  re.findall(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', documento, re.MULTILINE)
-
-    periodo = None
+    periodo = re.findall(claro_periodo1, documento)
+    if len(periodo) == 0:
+      periodo = re.findall(claro_periodo2, documento)
+      if len(periodo) == 0:
+        periodo = re.findall(claro_periodo3, documento)
+    if len(periodo) != 0:
+      periodo = periodo = str("de " + periodo[0][0] + " a " + periodo[0][4])
     
     # Numero conta
     for numero_conta in pre_n_conta:
        n_conta = numero_conta
     
     # Mes Referencia
-    mes_referencia1 = re.findall(r'[Mm][EeÊê][Ss]/[Aa][Nn][Oo]\n\d*? ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0,1,2])/(19|20)\d{2}) ((0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
-    mes_referencia2 = re.findall(r'[Mm][EeÊê][Ss] [Rr][Ee][Ff][Ee][Rr][EeÊê][Nn][Cc][Ii][Aa]\n\n(\w+/\d{4})', documento, re.MULTILINE)
+    mes_referencia1 = re.findall(claro_mes_referencia1, documento)
+    mes_referencia2 = re.findall(claro_mes_referencia2, documento)
+
 
     if mes_referencia2:
-       mes_referencia = mes_referencia2
+      mes_referencia = mes_referencia2
     if mes_referencia1:
       mes_referencia = mes_referencia1[0][4]
     
     # Valor vencimento
-    valor_vencimento1 = re.findall(regex_valor_total1, documento, re.MULTILINE)
-    valor_vencimento2 = re.findall(regex_valor_total2, documento, re.MULTILINE)
-    valor_vencimento3 = re.findall(regex_valor_total3, documento, re.MULTILINE)
+    valor_vencimento1 = re.findall(claro_valor_vencimento1, documento)
+    valor_vencimento2 = re.findall(claro_valor_vencimento2, documento)
+    valor_vencimento3 = re.findall(claro_valor_vencimento3, documento)
 
     vencimento_numerico1 = [float(elemento.replace(',', '.')) for elemento in valor_vencimento1]
     if vencimento_numerico1:
@@ -174,17 +188,28 @@ def extrair_info(documento, prestadora):
 
   elif prestadora == 'Tim':
     n_conta = re.findall(r'FATURA: (\d{10})', documento, re.MULTILINE)
+    if len(n_conta) != 0:
+      n_conta = n_conta[0]
 
     mes_referencia = re.findall(r'(JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)/(19|20)\d{2}', documento, re.MULTILINE)
+    if len(mes_referencia) != 0:
+      mes_referencia = mes_referencia[0][0]
 
     vencimento =  re.findall(r'VENCIMENTO\n((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
+    if len(vencimento) != 0:
+      vencimento = vencimento[0][0]
 
     emisao = re.findall(r'EMISSÃO: ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
+    if len(emisao) != 0:
+      emisao = emisao[0][0]
 
     cpf = encontra_cpf_cnpj(documento)
 
     periodo = re.findall(r'PERÍODO: ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2}) A ((0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/(19|20)\d{2})', documento, re.MULTILINE)
+    if len(periodo) != 0:
+      periodo = periodo = str("de " + periodo[0][0] + " a " + periodo[0][4])
 
+    #valor_vencimento = None
 
   nome_conta = re.findall(r'\w+-\d{2}-\d{4}-\w+\.pdf', documento, re.MULTILINE)
 
@@ -235,11 +260,13 @@ def main(arg):
     info = extrair_info(documento, prestadora)
     infos.append(info)
 
-  nome_excel = input("Digite o nome do excel:")
+  nome_excel = input("Digite o nome do arquivo excel:")
 # Salvar o DataFrame em um arquivo Excel
   df = json_normalize(infos)
   df.to_excel(nome_excel+'.xlsx', index=False)
   
+  #FINALIZAÇÃO DA EXECUÇÃO
+  print("Extração concluida!, o arquivo : " + str(nome_excel) + " encontra-se na mesma pasta que esse programa.")
   input("Digite qualquer coisa para continuar.............")
 
 
