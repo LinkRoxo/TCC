@@ -1,6 +1,5 @@
 import sys
 import subprocess
-import pkg_resources
 import pytesseract
 import regex as re
 import cv2
@@ -125,6 +124,8 @@ def extrair_info(documento, prestadora):
       valor_vencimento = valor_vencimento[0]
   
   elif prestadora == 'Claro':
+    tipo_conta = 'Telefonia'
+    
     pre_n_conta = re.findall(claro_n_conta, documento)
     
     vencimento =  re.findall(claro_vencimento, documento)
@@ -187,6 +188,7 @@ def extrair_info(documento, prestadora):
     
 
   elif prestadora == 'Tim':
+    tipo_conta = 'Telefonia'
     n_conta = re.findall(r'FATURA: (\d{10})', documento, re.MULTILINE)
     if len(n_conta) != 0:
       n_conta = n_conta[0]
@@ -230,7 +232,9 @@ def extrair_info(documento, prestadora):
 def encontra_cpf_cnpj(documento):
   tipo = 'CNPJ'
   dado = re.findall(r"[Cc][Pp][Ff]\/[Cc][Nn][Pp][Jj].*?:.*?(?=\d)(.*?(?=\d)([0-9]{3}\.?[0-9]{3}\.?[0-9]{3}\-?[0-9]{2}))", documento, re.MULTILINE)
-  return dado #dado[0][0]
+  if len(dado) != 0:
+    dado = dado[0][0]
+  return dado
 
 def main(arg):
   if os.name == 'nt': #WIN
