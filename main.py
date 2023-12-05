@@ -233,7 +233,10 @@ def encontra_cpf_cnpj(documento):
   return dado #dado[0][0]
 
 def main(arg):
-  pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+  if os.name == 'nt': #WIN
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+  if os.name == 'posix': #UNIX LIKE
+    pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
   path = arg
   paths = list_files_in_directory(path)
@@ -261,26 +264,25 @@ def main(arg):
     infos.append(info)
 
   nome_excel = input("Digite o nome do arquivo excel:")
-# Salvar o DataFrame em um arquivo Excel
+  nome_excel+= '.xlsx'
+  
+  # Salvar o DataFrame em um arquivo Excel
   df = json_normalize(infos)
-  df.to_excel(nome_excel+'.xlsx', index=False)
+  df.to_excel(nome_excel, index=False)
   
   #FINALIZAÇÃO DA EXECUÇÃO
   print("Extração concluida!, o arquivo : " + str(nome_excel) + " encontra-se na mesma pasta que esse programa.")
   input("Digite qualquer coisa para continuar.............")
 
 
-required = {'pytesseract', 'regex', 'opencv-python', 'pandas'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
-
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-
 if __name__ == "__main__":
   path = str(input('Insira o caminho da pasta com os as contas convertidas: '))
-  array_documento = main(path)
+  try:
+    array_documento = main(path)
+  except Exception as error:
+    print(error)
+    input()
+
   
 
 
