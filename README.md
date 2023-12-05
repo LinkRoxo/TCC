@@ -18,14 +18,18 @@ Antes de começar, verifique se você atendeu aos seguintes requisitos:
 Para executar o <main.py>, siga estas etapas:
 
 
-# **Ubuntu:**
+# **Linux:**
 
 ```
 pip install opencv-python
+pip install setuptools
 pip install pytesseract
 pip install regex
 pip install pandas
+pip install openpyxl
+pip install alive_progress
 ```
+
 Instalar os binarios do tesseract-ocr
 ```
 sudo apt install tesseract-ocr
@@ -36,10 +40,14 @@ sudo apt install libtesseract-dev
 
 ```
 pip install opencv-python
+pip install setuptools
 pip install pytesseract
 pip install regex
 pip install pandas
+pip install openpyxl
+pip install alive_progress
 ```
+
 Baixar os binarios do tesseract-ocr [nesse repositorio](https://github.com/UB-Mannheim/tesseract/wiki).
 
 ## ☕ Usando o prototipo
@@ -47,12 +55,13 @@ Baixar os binarios do tesseract-ocr [nesse repositorio](https://github.com/UB-Ma
 Para usar <main.py>, siga estas etapas:
 
 ```
-1 - Criei uma pasta e insira todos os documentos previamente convertidos para ".png"
+1 - Crie uma pasta e insira todos os documentos previamente convertidos para ".png"
 2 - Copiar o endereço da pasta que contem as imagens
 3 - Executar o "main.py"
 4 - Quando o programa pedir, insira o endereço da pasta
 5 - Aguarde
-6 - Ao finalizar a extração o programa ira pedir para o usuario pressionar qualquer tecla.
+6 - O programa ira perguntar o nome do arquivo ".xlsx"
+7 - Ao finalizar a extração o programa ira pedir para o usuario pressionar qualquer tecla.
 ```
 
 ## 🤝 Colaboradores
